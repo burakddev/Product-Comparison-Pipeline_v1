@@ -1,0 +1,96 @@
+version: '2'
+
+services:
+#  file-stream-processor:
+#    container_name: kafka-file-stream-processor
+#    build:
+#      context: ./stream-services/file-product-stream-processor
+#    depends_on:
+#      - kafka-cluster
+#    networks:
+#      - kafka-network
+
+#  rest-proxy-product-stream-processor:
+#    container_name: rest-proxy-product-stream-processor
+#    build:
+#      context: ./stream-services/rest-proxy-product-stream-processor
+#    depends_on:
+#      - kafka-cluster
+#    networks:
+#      - kafka-network
+
+#  product-retrieval-service:
+#    container_name: product-retrieval-service
+#    build:
+#      context: ./serving-services/product-retrieval-service
+#    ports:
+#      - "8000:8000"
+#    networks:
+#      - kafka-network
+#    depends_on:
+#      - kafka-cluster
+#      - naming-server
+#    environment:
+#      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+
+#  api-gateway:
+#    container_name: api-gateway
+#    build:
+#      context: ./serving-services/api-gateway
+#    ports:
+#      - "8765:8765"
+#    networks:
+#      - kafka-network
+#    depends_on:
+#      - kafka-cluster
+#      - naming-server
+#    environment:
+#      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+
+#  naming-server:
+#    container_name: naming-serve
+#    build:
+#      context: ./serving-services/naming-serve
+#    ports:
+#      - "8761:8761"
+#    networks:
+#      - kafka-network
+
+  kafka-cluster:
+    container_name: kafka-cluster
+    image: landoop/fast-data-dev:2.5.1
+    environment:
+      ADV_HOST: 127.0.0.1
+      RUNTESTS: 0                 # Disable Running tests so the cluster starts faster
+      SAMPLEDATA: 0
+    volumes:
+    - ./connector:/kafka-config
+    ports:
+      - 2181:2181                 # Zookeeper
+      - 3030:3030                 # Landoop UI
+      - 8081-8083:8081-8083       # REST Proxy, Schema Registry, Kafka Connect ports
+      - 9581-9585:9581-9585       # JMX Ports
+      - 9092:9092                 # Kafka Broker
+#    networks:
+#      - kafka-network
+
+  cassandra:
+    container_name: cassandra
+    image: bitnami/cassandra:3.11.9
+    ports:
+      - '7000:7000'
+      - '9042:9042'
+    volumes:
+      - 'cassandra_data:/bitnami'
+      - ./init-data:/docker-entrypoint-initdb.d/
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=cassandra
+
+volumes:
+  cassandra_data:
+    driver: local
+#networks:
+#  kafka-network:
+#    driver: bridge
